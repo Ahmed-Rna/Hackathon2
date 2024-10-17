@@ -24,15 +24,12 @@ const CreateWorkspaceModal = ({ closeModal }) => {
     fetchUsers();
   }, []);
 
-  // Filter users who are available for the Team Lead role (not admin, and AvailableForTeamLead is true or not false)
   const availableForTeamLeadUsers = users.filter(user => user.role !== 'admin' && user.AvailableForTeamLead !== false);
-
-  // Filter out users who are available for membership and are not the selected Team Lead and also exclude those whose AvailableForTeamLead is false
   const availableMembers = users.filter(user => 
     user.id !== teamLead && 
     user.role !== 'admin' && 
     user.AvailableForMember !== false &&
-    user.AvailableForTeamLead !== false  // Exclude members with AvailableForTeamLead as false
+    user.AvailableForTeamLead !== false 
   );
 
   const handleCreateWorkspace = async () => {
@@ -42,20 +39,17 @@ const CreateWorkspaceModal = ({ closeModal }) => {
         return;
       }
 
-      // Create a new workspace document in the Firestore `workspaces` collection
       await addDoc(collection(db, 'workspaces'), {
         WorkspaceName: workspaceName,
         TeamLead: availableForTeamLeadUsers.find(user => user.id === teamLead).name,
         Members: selectedMembers.map(memberId => availableMembers.find(member => member.id === memberId).name),
       });
 
-      // Update the Team Lead's `AvailableForTeamLead` to false
       const teamLeadRef = doc(db, 'users', teamLead);
       await updateDoc(teamLeadRef, {
         AvailableForTeamLead: false,
       });
 
-      // Update each selected member's `AvailableForMember` to false
       for (const memberId of selectedMembers) {
         const memberRef = doc(db, 'users', memberId);
         await updateDoc(memberRef, {
@@ -64,12 +58,9 @@ const CreateWorkspaceModal = ({ closeModal }) => {
       }
 
       alert('Workspace created successfully!');
-
-      // Reset the form
       setWorkspaceName('');
       setTeamLead('');
       setSelectedMembers([]);
-
       closeModal();
     } catch (error) {
       console.error("Error creating workspace: ", error);
@@ -86,44 +77,62 @@ const CreateWorkspaceModal = ({ closeModal }) => {
   };
 
   return (
-    <div className="modal">
-      <h2>Create Workspace</h2>
+    <div className="bg-gray-300 p-6 rounded-lg shadow-lg max-w-lg mx-auto my-10">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Create Workspace</h2>
       <input
         type="text"
+        className="w-full p-2 mb-4 border border-gray-300 rounded"
         placeholder="Workspace Name"
         value={workspaceName}
         onChange={(e) => setWorkspaceName(e.target.value)}
-      /><br />
+      />
 
-      <label>Assign Team Lead:</label>
-      <select value={teamLead} onChange={(e) => setTeamLead(e.target.value)}>
+      <label className="block mb-2">Assign Team Lead:</label>
+      <select
+        value={teamLead}
+        onChange={(e) => setTeamLead(e.target.value)}
+        className="w-full p-2 mb-4 border border-gray-300 rounded"
+      >
         <option value="">Select Team Lead</option>
         {availableForTeamLeadUsers.map((user) => (
           <option key={user.id} value={user.id}>
             {user.name}
           </option>
         ))}
-      </select><br />
+      </select>
 
-      <h4>Select Members:</h4>
-      {availableMembers.map((user) => (
-        <div key={user.id}>
-          <label>
+      <h4 className="mb-2">Select Members:</h4>
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {availableMembers.map((user) => (
+          <label key={user.id} className="flex items-center">
             <input
               type="checkbox"
               value={user.id}
               checked={selectedMembers.includes(user.id)}
               onChange={() => handleMemberSelection(user.id)}
+              className="mr-2"
             />
             {user.name}
           </label>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="text-red-500">{error}</p>}
 
-      <button onClick={handleCreateWorkspace}>Create Workspace</button>
-      <button onClick={closeModal}>Cancel</button>
+      <div className="flex justify-end space-x-4">
+        <button
+          onClick={handleCreateWorkspace}
+          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
+        >
+          Create Workspace
+        </button>
+        <button
+          onClick={closeModal}
+          className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };

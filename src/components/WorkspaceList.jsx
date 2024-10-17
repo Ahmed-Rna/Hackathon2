@@ -22,7 +22,6 @@ const WorkspaceList = () => {
     fetchWorkspaces();
   }, []);
 
-  // Handle deleting a member from workspace
   const handleDeleteMember = async (workspaceId, memberId) => {
     try {
       console.log("Attempting to delete member with ID:", memberId);
@@ -61,7 +60,6 @@ const WorkspaceList = () => {
     }
   };
 
-  // Handle deleting the entire workspace
   const handleDeleteWorkspace = async (workspaceId, teamLead, members) => {
     try {
       const teamLeadQuery = query(collection(db, 'users'), where('name', '==', teamLead));
@@ -94,9 +92,9 @@ const WorkspaceList = () => {
       }
 
       const workspaceRef = doc(db, 'workspaces', workspaceId);
-      await deleteDoc(workspaceRef); // Correct usage
-      console.log("Workspace deleted successfully.");
+      await deleteDoc(workspaceRef);
 
+      console.log("Workspace deleted successfully.");
       setWorkspaces(prevWorkspaces => prevWorkspaces.filter(workspace => workspace.id !== workspaceId));
 
       alert('Workspace deleted successfully.');
@@ -107,28 +105,28 @@ const WorkspaceList = () => {
   };
 
   return (
-    <div>
-      <h2>List of Workspaces</h2>
-      <div>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-semibold mb-4">List of Workspaces</h2>
+      <div className="space-y-4">
         {workspaces.length === 0 ? (
-          <p>No workspaces available.</p>
+          <p className="text-gray-500">No workspaces available.</p>
         ) : (
           workspaces.map((workspace) => (
-            <div key={workspace.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-              <h3>Workspace Name: {workspace.WorkspaceName}</h3>
+            <div key={workspace.id} className="border p-4 rounded-lg shadow-sm">
+              <h3 className="text-xl font-medium">Workspace Name: {workspace.WorkspaceName}</h3>
               <p><strong>Team Lead:</strong> {workspace.TeamLead}</p>
               <p><strong>Members:</strong> {workspace.Members.join(', ')}</p>
 
-              {/* Select member to remove from workspace */}
-              <div>
-                <label>Select a member to remove:</label>
+              <div className="mt-4">
+                <label className="block mb-2">Select a member to remove:</label>
                 <select
+                  className="border p-2 rounded w-full mb-2"
                   value={selectedMember}
                   onChange={(e) => {
                     const selectedId = e.target.value;
                     setSelectedWorkspace(workspace.id);
                     setSelectedMember(selectedId);
-                    setSelectedMemberName(selectedId); // Set the name or ID for the selected member
+                    setSelectedMemberName(selectedId);
                   }}
                 >
                   <option value="">Select a member</option>
@@ -138,21 +136,22 @@ const WorkspaceList = () => {
                 </select>
               </div>
 
-              {/* Delete member button */}
-              <button
-                onClick={() => handleDeleteMember(selectedWorkspace, selectedMember)}
-                disabled={!selectedMember}
-              >
-                Remove Member
-              </button>
+              <div className="flex justify-between space-x-4">
+                <button
+                  onClick={() => handleDeleteMember(selectedWorkspace, selectedMember)}
+                  disabled={!selectedMember}
+                  className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
+                >
+                  Remove Member
+                </button>
 
-              {/* Delete workspace button */}
-              <button
-                onClick={() => handleDeleteWorkspace(workspace.id, workspace.TeamLead, workspace.Members)}
-                style={{ backgroundColor: 'red', color: 'white', marginTop: '10px' }}
-              >
-                Delete Workspace
-              </button>
+                <button
+                  onClick={() => handleDeleteWorkspace(workspace.id, workspace.TeamLead, workspace.Members)}
+                  className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition"
+                >
+                  Delete Workspace
+                </button>
+              </div>
             </div>
           ))
         )}
